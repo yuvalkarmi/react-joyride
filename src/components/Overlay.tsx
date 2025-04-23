@@ -2,6 +2,7 @@ import { CSSProperties, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useIsMounted, useMount, useSetState, useUnmount } from '@gilbarbara/hooks';
 import useTreeChanges from 'tree-changes-hook';
 
+import { LIFECYCLE } from '~/literals';
 import {
   getClientRect,
   getDocumentHeight,
@@ -13,24 +14,22 @@ import {
 } from '~/modules/dom';
 import { getBrowser, isLegacy, log } from '~/modules/helpers';
 
-import { LIFECYCLE } from '~/literals';
-
 import { Lifecycle, OverlayProps } from '~/types';
 
 import Spotlight from './Spotlight';
-
-interface State {
-  isScrolling: boolean;
-  mouseOverSpotlight: boolean;
-  resizedAt: number;
-  showSpotlight: boolean;
-}
 
 interface SpotlightStyles extends CSSProperties {
   height: number;
   left: number;
   top: number;
   width: number;
+}
+
+interface State {
+  isScrolling: boolean;
+  mouseOverSpotlight: boolean;
+  resizedAt: number;
+  showSpotlight: boolean;
 }
 
 export default function JoyrideOverlay(props: OverlayProps) {
@@ -96,7 +95,7 @@ export default function JoyrideOverlay(props: OverlayProps) {
     styles.overlayLegacyCenter,
   ]);
 
-  const spotlightStyles = useMemo(() => {
+  const calculateSpotlightStyles = useCallback(() => {
     const element = getElement(target);
     const elementRect = getClientRect(element);
     const isFixedTarget = hasPosition(element);
@@ -123,9 +122,15 @@ export default function JoyrideOverlay(props: OverlayProps) {
     target,
   ]);
 
+  // render time calculation
+  const spotlightStyles = useMemo(() => {
+    return calculateSpotlightStyles();
+  }, [calculateSpotlightStyles]);
+
   const handleMouseMove = useCallback(
     (event: MouseEvent) => {
-      const { height, left, position, top, width } = spotlightStyles;
+      // reclaculate spotlight styles whenever the mouse moves
+      const { height, left, position, top, width } = calculateSpotlightStyles();
 
       const offsetY = position === 'fixed' ? event.clientY : event.pageY;
       const offsetX = position === 'fixed' ? event.clientX : event.pageX;
@@ -137,7 +142,7 @@ export default function JoyrideOverlay(props: OverlayProps) {
         updateState({ mouseOverSpotlight: inSpotlight });
       }
     },
-    [spotlightStyles, mouseOverSpotlight, updateState],
+    [mouseOverSpotlight, updateState, calculateSpotlightStyles],
   );
 
   const handleResize = useCallback(() => {
