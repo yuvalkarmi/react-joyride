@@ -2,7 +2,6 @@ import { CSSProperties, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useIsMounted, useMount, useSetState, useUnmount } from '@gilbarbara/hooks';
 import useTreeChanges from 'tree-changes-hook';
 
-import { LIFECYCLE } from '~/literals';
 import {
   getClientRect,
   getDocumentHeight,
@@ -13,6 +12,8 @@ import {
   hasPosition,
 } from '~/modules/dom';
 import { getBrowser, isLegacy, log } from '~/modules/helpers';
+
+import { LIFECYCLE } from '~/literals';
 
 import { Lifecycle, OverlayProps } from '~/types';
 
@@ -142,7 +143,7 @@ export default function JoyrideOverlay(props: OverlayProps) {
         updateState({ mouseOverSpotlight: inSpotlight });
       }
     },
-    [mouseOverSpotlight, updateState, calculateSpotlightStyles],
+    [mouseOverSpotlight, updateState, calculateSpotlightStyles, changed],
   );
 
   const handleResize = useCallback(() => {
